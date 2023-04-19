@@ -1,0 +1,25 @@
+{% extends 'base.html'%}
+
+{% block head %}
+
+{% endblock %}
+
+{% block body %}
+        <h1>Image Upload</h1>
+        <br>
+        <div class="inputFILE">
+            <input type="file" id="file" accept="image/*;capture=camera" onchange="processFile(this)">
+            <br>
+            <input type="button" class="btn btn-outline-primary btn-sm" onclick="imageSend(base64String, filenameString)" value="Upload">
+            <br>
+        </div>
+        <br>
+        <div class="alert alert-success" id="success" style="display:none;">
+            <strong>Success! </strong> Image uploaded to the server.
+        </div>
+        <div class="alert alert-danger" id="failed" style="display:none;">
+            <strong>Failed!</strong> Something went wrong uploading your image.
+        </div>
+        <div class="column" id="kuvat">
+        </div>
+{% endblock %}

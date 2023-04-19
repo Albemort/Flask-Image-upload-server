@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Image upload and show</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta http-equiv="X-UA-Compatible" content="ie-edge">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+        <!-- Latest compiled and minified CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Latest compiled JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Socket IO -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.min.js"></script>
+        <!-- Latest jquery -->
+        <script src="http://code.jquery.com/jquery-latest.js"></script>
+        <!-- JavaScript code -->
+        <script type="text/javascript"> 
+            let base64String = "";
+            let filenameString = "";
+
+            // SocketIO, luodaan yhteys palvelimeen.
+            var socket = io();
+            socket.on('connect', function() {
+                socket.emit('message', {data: 'Connected!'});
+            });
+        
+            // Tarkistetaan onko kyseessä kuvatiedosto.
+            // Jos ei, näytetään varoitus.
+            function processFile(imageInput) {
+                $('#success').hide();
+                $('#failed').hide();
+                if(!(document.getElementById("file").files[0].type.match(/image.*/))){
+                alert('You can\'t upload this type of file. Images only!');
+                document.getElementById("file").value="";
+                return;
+                }
+                else {
+                    imageUploaded()
+                }
+            }
+        
+            // Muutetaan saatu kuva binary-to-text (base64) -muotoon.
+            function imageUploaded() {
+                var file = document.querySelector(
+                    'input[type=file]')['files'][0];
+        
+                filenameString = document.querySelector(
+                    'input[type=file]')['files'][0].name;
+            
+                var reader = new FileReader();
+                
+                reader.onload = function () {
+                    base64String = reader.result.replace("data:", "")
+                        .replace(/^.+,/, "");
+            
+                    // console.log(base64String);
+                }
+                reader.readAsDataURL(file);
+            }
+        
+            // Lähetetään data ja kuvan nimi palvelimelle POST -pyynnössä.
+            // Käsitellään myös palvelimelta saatu vastaus (response).
+            // Jos kuvaa ei ole valittu, näytetään varoitus.
+            function imageSend(data, name) {
+                if (data != "" && name != "") {
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: {
+                        data: data,
+                        name: name
+                    },
+                    success: function (response) {
+                        console.log(response)
+                        $('#success').show();
+                    },
+                    error: function (response) {
+                        console.log(response)
+                        $('#failed').show();
+                    }
+                });
+                base64String = "";
+                filenameString = "";
+                document.getElementById("file").value="";
+                } else {
+                    alert('Please, select an image first.')
+                    return;
+                }
+            }
+        
+            // Näytetään palvelimelta takaisin tullut kuva ja sen nimi
+            // asiakkaalle sivustolla.
+            socket.on("img", function(data) {
+                let k = data.result;
+                //var br = document.createElement("br");
+        
+                var img = document.createElement("img");
+                img.src = k;
+                img.style = "width: 400px; margin-top: 8px;"
+                document.getElementById("kuvat").appendChild(img);
+                document.getElementById("kuvat").appendChild(document.createElement("br"));
+        
+                var a = document.createElement("a");
+                var node = document.createTextNode(k.split('/').pop());
+                a.appendChild(node);
+                a.href = data.result;
+                a.target = "_blank";
+                document.getElementById("kuvat").appendChild(a);
+                document.getElementById("kuvat").appendChild(document.createElement("br"));
+            });
+        </script>
+        {%block head%}{%endblock%}
+    </head>
+    <body>
+        {%block body%}{%endblock%}
+    </body>
+</html>
