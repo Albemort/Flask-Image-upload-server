@@ -1,6 +1,7 @@
 from flask import Flask, render_template, send_from_directory, request
 from flask_socketio import SocketIO
 import base64
+import os
 
 # Globaali Flask-palvelimen ilmentymä, konfiguraatio ja SocketIO
 app = Flask(__name__)
@@ -10,6 +11,15 @@ MAX_BUFFER_SIZE = 50 * 1000 * 1000  # Tiedoston max. koko 50 MB
 socketio = SocketIO(app, max_http_buffer_size=MAX_BUFFER_SIZE)
 # Globaali muuttuja, jolla estetään samannimisten kuvien luonti.
 num = 1
+
+# Luo 'uploads' kansio, jos ei ole olemassa.
+def create_uploads_folder():
+    uploads_folder = 'uploads'
+    if not os.path.exists(uploads_folder):
+        os.makedirs(uploads_folder)
+        print("Directory '% s' created" % uploads_folder) 
+
+create_uploads_folder()
 
 # Polku, josta saadaan kuvan osoite (url).
 @app.route('/uploads/<filename>')
